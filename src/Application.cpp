@@ -25,4 +25,8 @@ void Application::setup()
 
 void Application::loop()
 {
+  log.info("loop %f - %f - %f", imu.yaw, imu.pitch, imu.roll);
+  Thread::wait(1000);
+
+  imu.update();
 }
