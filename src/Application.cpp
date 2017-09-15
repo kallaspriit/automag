@@ -1,5 +1,7 @@
 #include "Application.hpp"
 
+Application::Application() : imu(p9, p10, 57600) {}
+
 void Application::run()
 {
   log.info("running application");
@@ -17,6 +19,8 @@ void Application::run()
 void Application::setup()
 {
   log.info("setting up application");
+
+  imu.initialize();
 }
 
 void Application::loop()
