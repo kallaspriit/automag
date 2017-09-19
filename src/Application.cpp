@@ -2,7 +2,14 @@
 
 #include <algorithm>
 
-Application::Application() : imu(p9, p10, 57600), motor(128, 57600, p27, p28), motorSignalGnd(p29) {}
+Application::Application() : imu(p9, p10, 57600),
+                             motor(128, 57600, p27, p28),
+                             motorSignalGnd(p29),
+                             potentiometer(p20),
+                             lastPotentiometerValue(0.0f),
+                             targetAngle(0.0f)
+{
+}
 
 void Application::run()
 {
@@ -25,16 +32,42 @@ void Application::setup()
   motorSignalGnd = 0;
   motor.ForwardM1(0);
   imu.initialize();
+  potentiometerTimer.start();
 }
 
 void Application::loop()
 {
+  if (potentiometerTimer.read_ms() >= 100)
+  {
+    updatePotentiometer();
+
+    potentiometerTimer.reset();
+  }
+
+  updateMotorSpeed();
+}
+
+void Application::updatePotentiometer()
+{
+  float currentValue = potentiometer;
+  float deltaValue = fabs(currentValue - lastPotentiometerValue);
+
+  if (deltaValue > POTENTIOMETER_CHANGE_THRESHOLD)
+  {
+    targetAngle = currentValue * 360.0f - 180.0f;
+    lastPotentiometerValue = currentValue;
+
+    log.info("target angle was changed to %.0f degrees (%.2f)", targetAngle, currentValue);
+  }
+}
+
+void Application::updateMotorSpeed()
+{
   // int encoder1 = motor.ReadSpeedM1();
   imu.update();
 
-  float targetYaw = 0.0f;
   float currentYaw = imu.yaw;
-  float errorYaw = getAngleBetween(currentYaw, targetYaw);
+  float errorYaw = getAngleBetween(currentYaw, targetAngle);
   int maxSpeed = 2000;
   float maxSpeedError = 45.0f;
   int correctiveSpeed = min(max((int)floor((errorYaw / maxSpeedError) * (float)maxSpeed), -maxSpeed), maxSpeed);
