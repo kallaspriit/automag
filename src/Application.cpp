@@ -6,9 +6,13 @@ Application::Application() : imu(p9, p10, 57600),
                              motor(128, 57600, p27, p28),
                              motorSignalGnd(p29),
                              potentiometer(p20),
+                             initialEncoderValue(0),
                              lastPotentiometerValue(0.0f),
                              lastAngle(0.0f),
-                             targetAngle(0.0f)
+                             targetAngle(0.0f),
+                             encoderDelta(0),
+                             isReturningHome(false),
+                             returnHomeDirection(1)
 {
 }
 
@@ -38,15 +42,16 @@ void Application::setup()
 
 void Application::loop()
 {
-  if (updateTimer.read_ms() >= 100)
+  if (updateTimer.read_ms() >= UPDATE_INTERVAL_MS)
   {
     updatePotentiometer();
     updateYawLogger();
+    updateEncoder();
 
     updateTimer.reset();
   }
 
-  updateMotorSpeed();
+  loopMotorSpeed();
 }
 
 void Application::updatePotentiometer()
@@ -77,14 +82,72 @@ void Application::updateYawLogger()
   }
 }
 
-void Application::updateMotorSpeed()
+void Application::updateEncoder()
 {
-  // int encoder1 = motor.ReadSpeedM1();
+  uint8_t status = 0;
+  bool valid = false;
+  uint32_t currentEncoderValue = motor.ReadEncM1(&status, &valid);
+
+  if (!valid)
+  {
+    // log.info("encoder invalid: %lu, status: %d", currentEncoderValue, status);
+
+    return;
+  }
+
+  if (initialEncoderValue == 0)
+  {
+    initialEncoderValue = currentEncoderValue;
+
+    return;
+  }
+
+  encoderDelta = currentEncoderValue > initialEncoderValue ? currentEncoderValue - initialEncoderValue : -(initialEncoderValue - currentEncoderValue);
+
+  // log.info("encoder current: %lu, initial: %lu, delta: %d, status: %d", currentEncoderValue, initialEncoderValue, encoderDelta, status);
+}
+
+void Application::loopMotorSpeed()
+{
   imu.update();
+
+  if (isReturningHome)
+  {
+    motor.SpeedM1(returnHomeDirection * RETURN_HOME_SPEED);
+
+    bool isHome = (returnHomeDirection == 1 && encoderDelta > 0) || (returnHomeDirection == -1 && encoderDelta < 0);
+
+    if (isHome)
+    {
+      log.info("got home\n");
+
+      isReturningHome = false;
+    }
+
+    return;
+  }
+
+  if (abs(encoderDelta) > ENCODER_COUNTS_PER_REVOLUTION)
+  {
+    if (encoderDelta > 0)
+    {
+      returnHomeDirection = -1;
+    }
+    else
+    {
+      returnHomeDirection = 1;
+    }
+
+    log.info("return home %s\n", returnHomeDirection > 0 ? "clockwise" : "anti-clockwise");
+
+    isReturningHome = true;
+
+    return;
+  }
 
   float currentYaw = imu.yaw;
   float errorYaw = getAngleBetween(currentYaw, targetAngle);
-  int maxSpeed = 2000;
+  int maxSpeed = MAX_CORRECTIVE_SPEED;
   float maxSpeedError = 45.0f;
   int correctiveSpeed = min(max((int)floor((errorYaw / maxSpeedError) * (float)maxSpeed), -maxSpeed), maxSpeed);
 

@@ -140,10 +140,14 @@ public:
     * @note Read encoder in ticks
     * @note Read speed in ticks per second
     */
-  int32_t ReadEncM1();
+  uint32_t ReadEncM1(uint8_t *status, bool *valid);
   int32_t ReadEncM2();
   int32_t ReadSpeedM1();
   int32_t ReadSpeedM2();
+
+  void flush();
+  uint32_t Read4_1(uint8_t address, uint8_t cmd, uint8_t *status, bool *valid);
+  uint16_t read(int timeout = 10000);
 
   /** Set both encoders to zero
     * @param address address of the device
@@ -173,6 +177,7 @@ public:
 
 private:
   Serial _roboclaw;
+  Timer readTimer;
   uint16_t crc;
   uint8_t address;
   void crc_clear();

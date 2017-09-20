@@ -81,7 +81,7 @@ void RoboClaw::write_(uint8_t command, uint8_t data, bool reading, bool crcon)
 
 uint16_t RoboClaw::crc16(uint8_t *packet, int nBytes)
 {
-  uint16_t crc_;
+  uint16_t crc_ = 0;
   for (int byte = 0; byte < nBytes; byte++)
   {
     crc_ = crc_ ^ ((uint16_t)packet[byte] << 8);
@@ -140,27 +140,233 @@ void RoboClaw::ReadFirm()
   write_(GETVERSION, 0x00, true, false);
 }
 
-int32_t RoboClaw::ReadEncM1()
+// int32_t RoboClaw::ReadEncM1()
+// {
+//   uint16_t read_byte[7];
+//   write_n(2, address, GETM1ENC);
+
+//   read_byte[0] = (uint16_t)_roboclaw.getc();
+//   read_byte[1] = (uint16_t)_roboclaw.getc();
+//   read_byte[2] = (uint16_t)_roboclaw.getc();
+//   read_byte[3] = (uint16_t)_roboclaw.getc();
+//   read_byte[4] = (uint16_t)_roboclaw.getc();
+//   read_byte[5] = (uint16_t)_roboclaw.getc();
+//   read_byte[6] = (uint16_t)_roboclaw.getc();
+
+//   int32_t enc1;
+
+//   enc1 = read_byte[1] << 24;
+//   enc1 |= read_byte[2] << 16;
+//   enc1 |= read_byte[3] << 8;
+//   enc1 |= read_byte[4];
+
+//   // int32_t enc1 = (read_byte[3] << 24) | (read_byte[2] << 16) | (read_byte[1] << 8) | read_byte[0];
+
+//   // printf("ENC  %lu\n", enc1);
+
+//   return enc1;
+// }
+
+uint32_t RoboClaw::ReadEncM1(uint8_t *status, bool *valid)
 {
-  int32_t enc1;
-  uint16_t read_byte[7];
-  write_n(2, address, GETM1ENC);
-
-  read_byte[0] = (uint16_t)_roboclaw.getc();
-  read_byte[1] = (uint16_t)_roboclaw.getc();
-  read_byte[2] = (uint16_t)_roboclaw.getc();
-  read_byte[3] = (uint16_t)_roboclaw.getc();
-  read_byte[4] = (uint16_t)_roboclaw.getc();
-  read_byte[5] = (uint16_t)_roboclaw.getc();
-  read_byte[6] = (uint16_t)_roboclaw.getc();
-
-  enc1 = read_byte[1] << 24;
-  enc1 |= read_byte[2] << 16;
-  enc1 |= read_byte[3] << 8;
-  enc1 |= read_byte[4];
-
-  return enc1;
+  return Read4_1(address, GETM1ENC, status, valid);
 }
+
+void RoboClaw::flush()
+{
+  while (_roboclaw.readable())
+  {
+    _roboclaw.getc();
+  }
+
+  return;
+}
+
+uint32_t RoboClaw::Read4_1(uint8_t address, uint8_t cmd, uint8_t *status, bool *valid)
+{
+  // uint8_t crc;
+
+  if (valid)
+    *valid = false;
+
+  uint32_t value = 0;
+  // uint8_t trys = MAXRETRY;
+  uint8_t trys = 2;
+  int16_t data;
+  do
+  {
+    flush();
+
+    crc_clear();
+    _roboclaw.putc(address);
+    crc_update(address);
+    _roboclaw.putc(cmd);
+    crc_update(cmd);
+
+    data = read();
+    crc_update(data);
+    value = (uint32_t)data << 24;
+
+    if (data != -1)
+    {
+      data = read();
+      crc_update(data);
+      value |= (uint32_t)data << 16;
+    }
+
+    if (data != -1)
+    {
+      data = read();
+      crc_update(data);
+      value |= (uint32_t)data << 8;
+    }
+
+    if (data != -1)
+    {
+      data = read();
+      crc_update(data);
+      value |= (uint32_t)data;
+    }
+
+    if (data != -1)
+    {
+      data = read();
+      crc_update(data);
+      if (status)
+        *status = data;
+    }
+
+    // printf("value before crc %lu\n", value);
+
+    if (data != -1)
+    {
+      Thread::wait(1); // does not work without for whatever reason
+      uint16_t ccrc;
+      data = read();
+      if (data != -1)
+      {
+        ccrc = data << 8;
+        data = read();
+        if (data != -1)
+        {
+          ccrc |= data;
+          if (crc_get() == ccrc)
+          {
+            *valid = true;
+            return value;
+          }
+        }
+      }
+    }
+  } while (trys--);
+
+  return false;
+}
+
+uint16_t RoboClaw::read(int timeout)
+{
+  // Timer timer;
+  readTimer.reset();
+  readTimer.start();
+
+  int cycles = 0;
+
+  while (!_roboclaw.readable())
+  {
+    cycles++;
+
+    if (readTimer.read_ms() >= timeout)
+    {
+      // printf("GIVE UP %d\n", cycles);
+      return -1;
+    }
+  }
+
+  if (cycles > 0)
+  {
+    // printf("WAITED %d\n", cycles);
+  }
+
+  return (uint16_t)_roboclaw.getc();
+}
+
+// uint32_t RoboClaw::read4_1(uint8_t address, uint8_t cmd, uint8_t *status, bool *valid)
+// {
+//   if (valid)
+//     *valid = false;
+
+//   uint16_t value = 0;
+//   uint8_t trys = 2;
+//   int16_t data;
+//   do
+//   {
+//     // flush();
+//     // _roboclaw.flush();
+
+//     crc_clear();
+//     // _roboclaw.putc(address);
+//     _roboclaw.putc(address);
+//     crc_update(address);
+//     // write(cmd);
+//     _roboclaw.putc(cmd);
+//     crc_update(cmd);
+
+//     data = (uint16_t)_roboclaw.getc();
+//     crc_update(data);
+//     value = (uint16_t)data << 24;
+
+//     if (data != -1)
+//     {
+//       data = (uint16_t)_roboclaw.getc();
+//       crc_update(data);
+//       value = (uint16_t)data << 16;
+//     }
+
+//     if (data != -1)
+//     {
+//       data = (uint16_t)_roboclaw.getc();
+//       crc_update(data);
+//       value = (uint16_t)data << 8;
+//     }
+
+//     if (data != -1)
+//     {
+//       data = (uint16_t)_roboclaw.getc();
+//       crc_update(data);
+//       value |= (uint16_t)data;
+//     }
+
+//     if (data != -1)
+//     {
+//       data = (uint16_t)_roboclaw.getc();
+//       crc_update(data);
+//       if (status)
+//         *status = data;
+//     }
+
+//     if (data != -1)
+//     {
+//       uint16_t ccrc;
+//       data = (uint16_t)_roboclaw.getc();
+//       if (data != -1)
+//       {
+//         ccrc = data << 8;
+//         data = (uint16_t)_roboclaw.getc();
+//         if (data != -1)
+//         {
+//           ccrc |= data;
+//           if (crc_get() == ccrc)
+//           {
+//             *valid = true;
+//             return value;
+//           }
+//         }
+//       }
+//     }
+//   } while (trys--);
+
+//   return false;
+// }
 
 int32_t RoboClaw::ReadEncM2()
 {
