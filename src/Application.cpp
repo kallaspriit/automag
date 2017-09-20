@@ -7,6 +7,7 @@ Application::Application() : imu(p9, p10, 57600),
                              motorSignalGnd(p29),
                              potentiometer(p20),
                              lastPotentiometerValue(0.0f),
+                             lastAngle(0.0f),
                              targetAngle(0.0f)
 {
 }
@@ -32,16 +33,17 @@ void Application::setup()
   motorSignalGnd = 0;
   motor.ForwardM1(0);
   imu.initialize();
-  potentiometerTimer.start();
+  updateTimer.start();
 }
 
 void Application::loop()
 {
-  if (potentiometerTimer.read_ms() >= 100)
+  if (updateTimer.read_ms() >= 100)
   {
     updatePotentiometer();
+    updateYawLogger();
 
-    potentiometerTimer.reset();
+    updateTimer.reset();
   }
 
   updateMotorSpeed();
@@ -52,12 +54,26 @@ void Application::updatePotentiometer()
   float currentValue = potentiometer;
   float deltaValue = fabs(currentValue - lastPotentiometerValue);
 
-  if (deltaValue > POTENTIOMETER_CHANGE_THRESHOLD)
+  if (deltaValue > POTENTIOMETER_CHANGE_THRESHOLD / 360.0f)
   {
     targetAngle = currentValue * 360.0f - 180.0f;
     lastPotentiometerValue = currentValue;
 
-    log.info("target angle was changed to %.0f degrees (%.2f)", targetAngle, currentValue);
+    log.info("target angle was changed to %.1f degrees (%.2f)", targetAngle, currentValue);
+  }
+}
+
+void Application::updateYawLogger()
+{
+  float currentAngle = imu.yaw;
+  float deltaValue = getAngleBetween(currentAngle, lastAngle);
+
+  if (fabs(deltaValue) > YAW_CHANGE_THRESHOLD)
+  {
+    lastAngle = currentAngle;
+    float errorAngle = getAngleBetween(currentAngle, targetAngle);
+
+    log.info("current angle changed to %.0f degrees (target: %.0f, error: %.0f)", currentAngle, targetAngle, errorAngle);
   }
 }
 
