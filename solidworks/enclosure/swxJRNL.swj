@@ -10421,3 +10421,165 @@ Set myModelView = Part.ActiveView
 myModelView.FrameState = swWindowState_e.swWindowMaximized
 swApp.ActivateDoc2 "assembly.SLDASM", False, longstatus
 Set Part = swApp.ActiveDoc
+boolstatus = Part.Extension.SelectByID2("", "FACE", -0.079627173938547458, 0.0039093301052730567, -0.0012052912135800398, False, 0, Nothing, 0)
+boolstatus = Part.Extension.SelectByID2("", "FACE", -0.07130882475519229, -0.099999999999909051, 0.0078135776773819998, True, 0, Nothing, 0)
+boolstatus = Part.Extension.SelectByID2("", "FACE", -0.069324597192803594, -0.10000000000002274, 0.0093886109827963082, True, 0, Nothing, 0)
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutPoint 0.0034361169648638441, 0, -0.047043791877513286, 0.008647503609438445, 0.0085993202390568513
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutPoint 0.18898643306751142, -0.014842170016959687, -0.047043791877513286, 0.008647503609438445, 0.0085993202390568513
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutPoint 0.18211419913778373, 0, -0.047043791877513286, 0.008647503609438445, 0.0085993202390568513
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutPoint 0.24052818754046909, -0.0074210850084798436, -0.047043791877513286, 0.008647503609438445, 0.0085993202390568513
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutPoint 0.50167307687012119, 0.0074210850084798436, -0.047043791877513286, 0.008647503609438445, 0.0085993202390568513
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutPoint 0.027488935718910753, 0, -0.047043791877513286, 0.008647503609438445, 0.0085993202390568513
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutPoint -0.048105637508093817, 0.0074210850084798436, -0.047043791877513286, 0.008647503609438445, 0.0085993202390568513
+boolstatus = Part.Extension.SelectByID2("", "FACE", -0.074594291404139312, 0.036499999999932697, 0.0065013033893137617, True, 0, Nothing, 0)
+Part.SetPickMode
+Part.ClearSelection2 True
+Part.SetPickMode
+Set Part = swApp.NewDocument("C:\ProgramData\SolidWorks\SOLIDWORKS 2016\templates\Part.prtdot", 0, 0, 0)
+swApp.ActivateDoc2 "Part2", False, longstatus
+Set Part = swApp.ActiveDoc
+boolstatus = Part.Extension.SelectByID2("Right Plane", "PLANE", 0, 0, 0, False, 0, Nothing, 0)
+boolstatus = Part.Extension.SelectByID2("Top Plane", "PLANE", 0, 0, 0, False, 0, Nothing, 0)
+Part.SketchManager.InsertSketch True
+Part.ClearSelection2 True
+Set skSegment = Part.SketchManager.CreateCircle(0.000000, 0.000000, 0.000000, 0.011121, 0.007629, 0.000000)
+boolstatus = Part.Extension.SelectByID2("Arc1", "SKETCHSEGMENT", 0, 0, 0, False, 0, Nothing, 0)
+Set myDisplayDim = Part.AddDimension2(0.037758022343712894, 0, -0.048231994295222236)
+Part.ClearSelection2 True
+Set myDimension = Part.Parameter("D1@Sketch1")
+myDimension.SystemValue = 0.0305
+Part.SetPickMode
+Part.ClearSelection2 True
+Set skSegment = Part.SketchManager.CreateCircle(0.000000, 0.000000, 0.000000, -0.003802, 0.027051, 0.000000)
+boolstatus = Part.Extension.SelectByID2("Arc2", "SKETCHSEGMENT", 0, 0, 0, False, 0, Nothing, 0)
+boolstatus = Part.Extension.SelectByID2("Arc1", "SKETCHSEGMENT", 0.016084514796986582, 0, -0.0048253544390959857, True, 0, Nothing, 0)
+Set myDisplayDim = Part.AddDimension2(0.050885555903193991, 0, 0.023834326471898343)
+Part.ClearSelection2 True
+Set myDimension = Part.Parameter("D2@Sketch1")
+myDimension.SystemValue = 0.003
+Part.SetPickMode
+Part.ClearSelection2 True
+Part.SketchManager.InsertSketch True
+Part.ShowNamedView2 "*Trimetric", 8
+Part.SketchManager.InsertSketch True
+Part.ClearSelection2 True
+boolstatus = Part.Extension.SelectByID2("Sketch1", "SKETCH", 0, 0, 0, False, 4, Nothing, 0)
+Set myFeature = Part.FeatureManager.FeatureExtrusion2(True, False, False, 0, 0, 0.02, 0.01, False, False, False, False, 0.017453292519943334, 0.017453292519943334, False, False, False, False, True, True, True, 0, 0, False)
+Part.SelectionManager.EnableContourSelection = False
+boolstatus = Part.Extension.SelectByID2("Top Plane", "PLANE", 0, 0, 0, False, 0, Nothing, 0)
+boolstatus = Part.Extension.SelectByID2("Front Plane", "PLANE", 0, 0, 0, False, 0, Nothing, 0)
+Part.SketchManager.InsertSketch True
+Part.ClearSelection2 True
+Set skSegment = Part.SketchManager.CreateCenterLine(-0.018250, 0.010000, 0.000000, 0.018250, 0.010000, 0.000000)
+Part.SetPickMode
+Part.ClearSelection2 True
+Part.SetPickMode
+Set skSegment = Part.SketchManager.CreateCircle(0.000000, 0.010000, 0.000000, 0.001239, 0.010957, 0.000000)
+boolstatus = Part.Extension.SelectByID2("Arc1", "SKETCHSEGMENT", 0, 0, 0, False, 0, Nothing, 0)
+Set myDisplayDim = Part.AddDimension2(0.0050301986340347618, 0.013172028243104011, 0)
+Part.ClearSelection2 True
+Set myDimension = Part.Parameter("D1@Sketch2")
+myDimension.SystemValue = 0.003
+Part.SetPickMode
+Part.ClearSelection2 True
+Part.SketchManager.InsertSketch True
+Part.SketchManager.InsertSketch True
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0, -0.0074210850084798436
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0, -0.014842170016959687
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.0068722339297276882, -0.022263255025439528
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0, -0.0074210850084798436
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.0068722339297276882, -0.029684340033919374
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.0068722339297276882, -0.0074210850084798436
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.0068722339297276882, -0.014842170016959687
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.010308350894591534, -0.014842170016959687
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.034361169648638439, -0.029684340033919374
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.010308350894591534, -0.029684340033919374
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.044669520543229972, -0.022263255025439528
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.037797286613502283, -0.014842170016959687
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.030925052683774594, -0.029684340033919374
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.044669520543229972, -0.014842170016959687
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.017180584824319219, -0.014842170016959687
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.041233403578366135, -0.051947595059358899
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.034361169648638439, -0.014842170016959687
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.017180584824319219, -0.014842170016959687
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.044669520543229972, -0.022263255025439528
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.027488935718910753, -0.014842170016959687
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.020616701789183067, 0
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.051541754472957661, -0.014842170016959687
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.020616701789183067, -0.014842170016959687
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.024052818754046908, -0.014842170016959687
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.041233403578366135, -0.014842170016959687
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.034361169648638439, -0.014842170016959687
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.0068722339297276882, -0.0074210850084798436
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.020616701789183067, -0.0074210850084798436
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.024052818754046908, -0.014842170016959687
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.020616701789183067, -0.0074210850084798436
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.013744467859455376, 0
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.0068722339297276882, -0.0074210850084798436
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.0068722339297276882, 0
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.0034361169648638441, -0.0074210850084798436
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.0034361169648638441, 0
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.0034361169648638441, 0
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0.0034361169648638441, 0
+Set myModelView = Part.ActiveView
+myModelView.RotateAboutCenter 0, -0.0074210850084798436
+Part.ClearSelection2 True
+boolstatus = Part.Extension.SelectByID2("Sketch2", "SKETCH", 0, 0, 0, False, 4, Nothing, 0)
+Set myFeature = Part.FeatureManager.FeatureCut3(False, False, False, 9, 1, 0.02, 0.02, False, False, False, False, 0.017453292519943334, 0.017453292519943334, False, False, False, False, False, True, True, True, True, False, 0, 0, False)
+Part.SelectionManager.EnableContourSelection = False
+boolstatus = Part.Extension.SelectByID2("", "EDGE", -0.014176164496916499, 0.020184533673102578, -0.0061046518366651981, True, 0, Nothing, 0)
+Set myFeature = Part.FeatureManager.InsertFeatureChamfer(4, 1, 0.001, 0.78539816339745006, 0, 0, 0, 0)
+boolstatus = Part.Extension.SelectByID2("Sketch1", "SKETCH", 0, 0, 0, False, 0, Nothing, 0)
+Part.ClearSelection2 True
+longstatus = Part.SaveAs3("G:\automag\solidworks\pipe-holes-helper.SLDPRT", 0, 2)
+' MSGBOX
+' Triangles: 1186
+' File Size: 59384 (Bytes)
+' File Format: Binary
+' Save G:\AUTOMAG\STL\PIPE-HOLES-HELPER-V1.STL?
+
+longstatus = Part.SaveAs3("G:\automag\stl\pipe-holes-helper-v1.STL", 0, 0)
