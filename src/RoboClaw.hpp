@@ -147,7 +147,7 @@ public:
 
   void flush();
   uint32_t Read4_1(uint8_t address, uint8_t cmd, uint8_t *status, bool *valid);
-  uint16_t read(int timeout = 10000);
+  uint16_t read(int timeout = 1000);
 
   /** Set both encoders to zero
     * @param address address of the device

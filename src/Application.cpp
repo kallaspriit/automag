@@ -7,6 +7,7 @@ Application::Application() : imu(p9, p10, 57600),
                              motorSignalGnd(p29),
                              potentiometer(p20),
                              initialEncoderValue(0),
+                             lastEncoderValue(0),
                              lastPotentiometerValue(0.0f),
                              lastAngle(0.0f),
                              targetAngle(0.0f),
@@ -61,10 +62,13 @@ void Application::updatePotentiometer()
 
   if (deltaValue > POTENTIOMETER_CHANGE_THRESHOLD / 360.0f)
   {
-    targetAngle = currentValue * 360.0f - 180.0f;
+    targetAngle = -(currentValue * 360.0f - 180.0f);
     lastPotentiometerValue = currentValue;
 
     log.info("target angle was changed to %.1f degrees (%.2f)", targetAngle, currentValue);
+
+    // recenter at current location to avoid shake when moving to new angle far from initial
+    initialEncoderValue = lastEncoderValue;
   }
 }
 
@@ -95,6 +99,8 @@ void Application::updateEncoder()
     return;
   }
 
+  lastEncoderValue = currentEncoderValue;
+
   if (initialEncoderValue == 0)
   {
     initialEncoderValue = currentEncoderValue;
@@ -104,13 +110,14 @@ void Application::updateEncoder()
 
   encoderDelta = currentEncoderValue > initialEncoderValue ? currentEncoderValue - initialEncoderValue : -(initialEncoderValue - currentEncoderValue);
 
-  // log.info("encoder current: %lu, initial: %lu, delta: %d, status: %d", currentEncoderValue, initialEncoderValue, encoderDelta, status);
+  // log.info("encoder current: %lu, initial: %lu, delta: %d, status: %d", lastEncoderValue, initialEncoderValue, encoderDelta, status);
 }
 
 void Application::loopMotorSpeed()
 {
   imu.update();
 
+  // perform returning home
   if (isReturningHome)
   {
     motor.SpeedM1(returnHomeDirection * RETURN_HOME_SPEED);
@@ -119,7 +126,7 @@ void Application::loopMotorSpeed()
 
     if (isHome)
     {
-      log.info("got home\n");
+      log.info("arrived home\n");
 
       isReturningHome = false;
     }
@@ -127,7 +134,10 @@ void Application::loopMotorSpeed()
     return;
   }
 
-  if (abs(encoderDelta) > ENCODER_COUNTS_PER_REVOLUTION)
+  // check for excessive rotation and return home if needed
+  int maxEncoderValue = (int)floor(MAX_ROTATIONS * (float)ENCODER_COUNTS_PER_REVOLUTION);
+
+  if (abs(encoderDelta) > maxEncoderValue)
   {
     if (encoderDelta > 0)
     {
@@ -145,27 +155,25 @@ void Application::loopMotorSpeed()
     return;
   }
 
-  float currentYaw = imu.yaw;
-  float errorYaw = getAngleBetween(currentYaw, targetAngle);
+  // calculate corrective speed to maintain target angle
+  float currentAngle = imu.yaw;
+  float errorAngle = getAngleBetween(currentAngle, targetAngle);
   int maxSpeed = MAX_CORRECTIVE_SPEED;
-  float maxSpeedError = 45.0f;
-  int correctiveSpeed = min(max((int)floor((errorYaw / maxSpeedError) * (float)maxSpeed), -maxSpeed), maxSpeed);
+  float maxSpeedError = MAX_CORRECTION_SPEED_ANGLE;
+  int correctiveSpeed = min((int)floor((fabs(errorAngle) / maxSpeedError) * (float)maxSpeed), maxSpeed);
+  int correctionDirection = errorAngle > 0 ? 1 : -1;
 
-  // log.info("YAW: %.1f    PITCH: %.1f    ROLL: %.1f    TARGET: %.1f    ERROR: %.1f    SPEED: %d", imu.yaw, imu.pitch, imu.roll, targetYaw, errorYaw, correctiveSpeed);
-  // Thread::wait(100);
+  // Thread::wait(500);
+  // log.info("CURRENT: %.1f    TARGET: %.1f    ERROR: %.1f    SPEED: %d    DELTA: %d", currentAngle, targetAngle, errorAngle, correctiveSpeed * correctionDirection, encoderDelta);
 
-  motor.SpeedM1(correctiveSpeed);
+  motor.SpeedM1(correctiveSpeed * correctionDirection);
 }
 
 float Application::getAngleBetween(float a, float b)
 {
-  // float c = b - a;
-  // return fmod(c + 180.0f, 360.0f) - 180.0f;
+  float angle = a - b;
 
-  float r = b - a;
-  r += (r > 180.0f) ? -360.0f : (a < -180.0f) ? 360.0f : 0.0f;
+  angle += (angle > 180.0f) ? -360.0f : (a < -180.0f) ? 360.0f : 0.0f;
 
-  return r;
-
-  // return atan2(sin(a - b), cos(a - b));
+  return angle;
 }
