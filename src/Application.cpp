@@ -117,6 +117,15 @@ void Application::loopMotorSpeed()
 {
   imu.update();
 
+  int msSinceLastImuUpdate = imu.getTimeSinceLastUpdate();
+
+  if (!imu.hasReceivedData || msSinceLastImuUpdate > 1000)
+  {
+    log.info("have not received data from IMU for %d ms, check connection (and note that IMU is powered by the battery not USB)", msSinceLastImuUpdate);
+
+    return;
+  }
+
   // perform returning home
   if (isReturningHome)
   {
@@ -163,8 +172,8 @@ void Application::loopMotorSpeed()
   int correctiveSpeed = min((int)floor((fabs(errorAngle) / maxSpeedError) * (float)maxSpeed), maxSpeed);
   int correctionDirection = errorAngle > 0 ? 1 : -1;
 
-  // Thread::wait(500);
   // log.info("CURRENT: %.1f    TARGET: %.1f    ERROR: %.1f    SPEED: %d    DELTA: %d", currentAngle, targetAngle, errorAngle, correctiveSpeed * correctionDirection, encoderDelta);
+  // Thread::wait(500);
 
   motor.SpeedM1(correctiveSpeed * correctionDirection);
 }

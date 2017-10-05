@@ -9,10 +9,12 @@ public:
 
   void initialize();
   void update();
+  int getTimeSinceLastUpdate();
 
   float yaw;
   float pitch;
   float roll;
+  bool hasReceivedData;
 
 private:
   void handleSerialRx();
@@ -24,6 +26,7 @@ private:
   Log log = Log::getLog("IMU");
 
   Serial serial;
+  Timer updateTimer;
   char messageBuffer[MESSAGE_BUFFER_SIZE];
   int messageLength = 0;
 };

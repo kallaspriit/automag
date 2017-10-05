@@ -2,20 +2,32 @@
 
 #include <string>
 
-IMU::IMU(PinName tx, PinName rx, int baud) : serial(tx, rx, baud), yaw(0.0f), pitch(0.0f), roll(0.0f) {}
+IMU::IMU(PinName tx, PinName rx, int baud) : yaw(0.0f),
+                                             pitch(0.0f),
+                                             roll(0.0f),
+                                             hasReceivedData(false),
+                                             serial(tx, rx, baud)
+{
+}
 
 void IMU::initialize()
 {
   log.info("initializing IMU");
 
   serial.printf("#o0");
-
   serial.attach(callback(this, &IMU::handleSerialRx), Serial::RxIrq);
+
+  updateTimer.start();
 }
 
 void IMU::update()
 {
   serial.printf("#f");
+}
+
+int IMU::getTimeSinceLastUpdate()
+{
+  return updateTimer.read_ms();
 }
 
 void IMU::handleSerialRx()
@@ -79,6 +91,8 @@ void IMU::handleMessage(char *message, int length)
     else if (tokenIndex == 3)
     {
       roll = atof(token);
+      updateTimer.reset();
+      hasReceivedData = true;
     }
 
     token = strtok(NULL, "=,");
